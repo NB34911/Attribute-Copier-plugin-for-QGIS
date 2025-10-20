@@ -16,7 +16,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'attribute_copier_dialog_base.ui'))
 
 
-class AttributeCopierDialog(QtWidgets.QDialog, FORM_CLASS):
+class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
     def __init__(self, parent=None):
         super(AttributeCopierDialog, self).__init__(parent)
         self.setupUi(self)
