@@ -17,28 +17,28 @@
    <item>
     <widget class="QLabel" name="label1">
      <property name="text">
-      <string>Wybierz atrybuty do skopiowania</string>
+      <string>Select attributes to copy</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="zaznacz_wszystko">
+    <widget class="QPushButton" name="pb_select_all">
      <property name="text">
-      <string>Zaznacz wszystko</string>
+      <string>Select all</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="odznacz_wszystko">
+    <widget class="QPushButton" name="pb_uncheck_all">
      <property name="text">
-      <string>Odznacz wszystko</string>
+      <string>Uncheck all</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="potwierdz_wybor">
+    <widget class="QPushButton" name="pb_confirm_choice">
      <property name="text">
-      <string>Potwierdź wybór</string>
+      <string>Confirm selection</string>
      </property>
     </widget>
    </item>
@@ -52,37 +52,37 @@
    <item>
     <widget class="QLabel" name="label2">
      <property name="text">
-      <string>Wybierz obiekt źródłowy, a następnie obiekty docelowe.</string>
+      <string>Select the source object and then the target objects.</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="wybierz_source">
+    <widget class="QPushButton" name="pb_copy_attributes">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="text">
-      <string>Kopiuj atrybuty</string>
+      <string>Copy attributes</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="wybierz_destination">
+    <widget class="QPushButton" name="pb_paste_attributes">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="text">
-      <string>Wklej atrybuty</string>
+      <string>Paste attributes</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="cofnij_destination">
+    <widget class="QPushButton" name="pb_undo">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="text">
-      <string>Cofnij</string>
+      <string>Undo</string>
      </property>
     </widget>
    </item>
