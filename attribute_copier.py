@@ -99,7 +99,7 @@ class AttributeCopier:
         """Add a toolbar icon to the toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
-            path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
+            path (e.g. ':/plugins/foo/bar.svg') or a normal file system path.
         :type icon_path: str
 
         :param text: Text that should be shown in menu items for this action.
@@ -162,7 +162,7 @@ class AttributeCopier:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/attribute_copier/icon.png'
+        icon_path = ':/plugins/attribute_copier/icon.svg'
         self.add_action(
             icon_path,
             text=self.tr(u'Copy attributes and paste.'),
