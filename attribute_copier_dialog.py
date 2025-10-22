@@ -41,7 +41,7 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         self.pb_copy_attributes.clicked.connect(lambda : self.enable_widget(self.pb_paste_attributes))
         
         self.pb_paste_attributes.clicked.connect(self.paste_attributes_from_source)
-        self.pb_paste_attributes.clicked.connect(lambda : self.enable_widget(self.pb_undo))
+
         
     def select_fields(self):
         for x in range(self.listWidget.count()):

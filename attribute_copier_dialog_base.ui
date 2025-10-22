@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>360</width>
-    <height>443</height>
+    <height>354</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -73,16 +73,6 @@
      </property>
      <property name="text">
       <string>Paste attributes</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="pb_undo">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="text">
-      <string>Undo</string>
      </property>
     </widget>
    </item>
