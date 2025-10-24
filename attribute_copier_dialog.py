@@ -18,9 +18,9 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         super(AttributeCopierDialog, self).__init__(parent)
         self.setupUi(self)
 
-        layer = iface.activeLayer()
         self.stored_attrs_to_copy = None
-
+        
+        layer = iface.activeLayer()
         self.listWidget.clear()
         fields = layer.fields()
 
@@ -30,6 +30,9 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
             item.setCheckState(Qt.Unchecked)
             self.listWidget.addItem(item)
         self.listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        
+        canvas = iface.mapCanvas()
+        canvas.currentLayerChanged.connect(self.fill_listWidget_with_fields)
         
         self.pb_select_all.clicked.connect(self.select_fields)
         self.pb_uncheck_all.clicked.connect(self.uncheck_fields)
@@ -41,8 +44,20 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         self.pb_copy_attributes.clicked.connect(lambda : self.enable_widget(self.pb_paste_attributes))
         
         self.pb_paste_attributes.clicked.connect(self.paste_attributes_from_source)
-
         
+    def fill_listWidget_with_fields(self):
+        
+        layer = iface.activeLayer()
+        self.listWidget.clear()
+        fields = layer.fields()
+
+        for field in fields:
+            item = QListWidgetItem(field.name())
+            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+            item.setCheckState(Qt.Unchecked)
+            self.listWidget.addItem(item)
+        self.listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+
     def select_fields(self):
         for x in range(self.listWidget.count()):
             item = self.listWidget.item(x)
