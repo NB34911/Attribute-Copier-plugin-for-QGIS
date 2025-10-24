@@ -36,3 +36,7 @@ Planned features for future releases include:
 *   An "Undo" button to revert the last modification.
 *   Ability to copy attributes between different vector layers, with an option to automatically create new fields in the target layer if they don't exist.
 *   Extended recognition of primary keys in different layers (currently, only `fid` in GeoPackage is recognized) to prevent errors.
+
+## Acknowledgements
+
+The initial structure of this plugin was generated using the excellent [QGIS Plugin Builder](https://g-sherman.github.io/Qgis-Plugin-Builder/). A big thank you to its author for creating a tool that significantly speeds up development.

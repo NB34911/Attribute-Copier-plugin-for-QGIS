@@ -1,6 +1,5 @@
-# Pliki cache Pythona
+
 __pycache__/
 *.pyc
 
-# Pliki konfiguracyjne IDE (opcjonalne, np. dla VS Code)
 .vscode/
