@@ -32,18 +32,8 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         self.setupUi(self)
 
         self.stored_attrs_to_copy = None
-        
-        layer = iface.activeLayer()
-        self.listWidget.clear()
-        fields = layer.fields()
+        self.fill_listWidget_with_fields()
 
-        for field in fields:
-            item = QListWidgetItem(field.name())
-            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Unchecked)
-            self.listWidget.addItem(item)
-        self.listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        
         canvas = iface.mapCanvas()
         canvas.currentLayerChanged.connect(self.fill_listWidget_with_fields)
         
@@ -59,18 +49,27 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         self.pb_paste_attributes.clicked.connect(self.paste_attributes_from_source)
         
     def fill_listWidget_with_fields(self):
-        
-        layer = iface.activeLayer()
+
         self.listWidget.clear()
-        fields = layer.fields()
+        layer = iface.activeLayer()
 
-        for field in fields:
-            item = QListWidgetItem(field.name())
-            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Unchecked)
-            self.listWidget.addItem(item)
-        self.listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        if not layer:
+            iface.messageBar().pushMessage("11:", "There is no active layer.", level=Qgis.Info)
 
+        elif (layer.type() == QgsMapLayer.VectorLayer):
+            
+            fields = layer.fields()
+
+            for field in fields:
+                item = QListWidgetItem(field.name())
+                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+                item.setCheckState(Qt.Unchecked)
+                self.listWidget.addItem(item)
+            self.listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        else:
+            iface.messageBar().pushMessage("11:", "No vector layer was selected.", level=Qgis.Info)
+            
+            
     def select_fields(self):
         for x in range(self.listWidget.count()):
             item = self.listWidget.item(x)
