@@ -31,8 +31,10 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         super(AttributeCopierDialog, self).__init__(parent)
         self.setupUi(self)
 
-        self.stored_attrs_to_copy = None
+        self.stored_names_attrs_to_copy = None
+        self.stored_values_attrs_to_copy = None
         self.fill_listWidget_with_fields()
+        self.layer_to_modify = None
 
         canvas = iface.mapCanvas()
         canvas.currentLayerChanged.connect(self.fill_listWidget_with_fields)
@@ -40,7 +42,7 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         self.pb_select_all.clicked.connect(self.select_fields)
         self.pb_uncheck_all.clicked.connect(self.uncheck_fields)
 
-        self.pb_confirm_choice.clicked.connect(self.activate_select_tool)
+        self.pb_confirm_choice.clicked.connect(self.confirm_layer_and_activate_select_tool)
         self.pb_confirm_choice.clicked.connect(lambda : self.enable_widget(self.pb_copy_attributes))
 
         self.pb_copy_attributes.clicked.connect(self.copy_source)
@@ -52,14 +54,10 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
 
         self.listWidget.clear()
         layer = iface.activeLayer()
-
         if not layer:
-            iface.messageBar().pushMessage("11:", "There is no active layer.", level=Qgis.Info)
-
+            iface.messageBar().pushMessage("Warning:", "There is no active vector layer selected.", level=Qgis.Info)
         elif (layer.type() == QgsMapLayer.VectorLayer):
-            
             fields = layer.fields()
-
             for field in fields:
                 item = QListWidgetItem(field.name())
                 item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
@@ -67,8 +65,7 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
                 self.listWidget.addItem(item)
             self.listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         else:
-            iface.messageBar().pushMessage("11:", "No vector layer was selected.", level=Qgis.Info)
-            
+            iface.messageBar().pushMessage("Warning:", "There is no active vector layer selected.", level=Qgis.Info)
             
     def select_fields(self):
         for x in range(self.listWidget.count()):
@@ -83,59 +80,80 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
             item = self.listWidget.item(x)
             item.setCheckState(Qt.Unchecked)
 
-    def activate_select_tool(self):
-        layer = iface.activeLayer()
-        iface.actionSelect().trigger()
-        self.showMinimized()
-        iface.messageBar().pushMessage("1:", "Select the object to copy attributes.", level=Qgis.Info)
-
-    def deselect_all(self):
-        layer = iface.activeLayer()
-        if layer:
-            layer.removeSelection()
+    def confirm_layer_and_activate_select_tool(self):
+        self.layer_to_modify= iface.activeLayer()
+        layer = self.layer_to_modify
+        if not layer or layer.type() != QgsMapLayer.VectorLayer:
+            iface.messageBar().pushMessage("Error", "Select a vector layer.", level=Qgis.Critical)
+            return
+        else:
+            iface.actionSelect().trigger()
+            iface.messageBar().pushMessage("1:", "Select the object to copy attributes.", level=Qgis.Info)
 
     def copy_source(self):
-        layer = iface.activeLayer()
+        layer = self.layer_to_modify
+        if not layer or layer.type() != QgsMapLayer.VectorLayer:
+            iface.messageBar().pushMessage("Error", "Select a vector layer.", level=Qgis.Critical)
+            return
+        
         feats = layer.selectedFeatures()
-        list_attr_to_copy = []
-        list_index_attr_to_copy = []
+        if len(feats) != 1:
+            iface.messageBar().pushMessage("Error", "Select exactly 1 object from which you want to copy attributes.", level=Qgis.Critical)
+            return
+        
+        list_attr_values_to_copy = []
+        list_names_attr_to_copy = []
         
         for x in range(self.listWidget.count()):
             item = self.listWidget.item(x)
             if item.checkState()==2:
-                list_index_attr_to_copy.append(x)
-        selection = layer.selectedFeatures()
+                list_names_attr_to_copy.append(item.text())
         
-        for feat in feats:
-            for i in range(len(list_index_attr_to_copy)):
-                id = int(list_index_attr_to_copy[i])
-                list_attr_to_copy.append(feat[id])
-                
-        self.stored_attrs_to_copy = dict(zip(list_index_attr_to_copy, list_attr_to_copy))
+        feat = feats[0]
+        for i in range(len(list_names_attr_to_copy)):
+            attr_val = list_names_attr_to_copy[i]
+            list_attr_values_to_copy.append(feat[attr_val])
+
+        self.stored_names_attrs_to_copy = list_names_attr_to_copy
+        self.stored_values_attrs_to_copy = list_attr_values_to_copy
         
         if layer:
             layer.removeSelection()
-        self.showMinimized()
         iface.messageBar().pushMessage("2:", "Select target objects to modify attributes.", level=Qgis.Info)
 
     def enable_widget(self, widget):
         widget.setEnabled(True)
         
     def paste_attributes_from_source(self):
-        layer = iface.activeLayer()
+        layer = self.layer_to_modify
+        if not layer or layer.type() != QgsMapLayer.VectorLayer:
+            iface.messageBar().pushMessage("Error", "Select a vector layer.", level=Qgis.Critical)
+            return
+        
         feats = layer.selectedFeatures()
+        if not feats:
+            iface.messageBar().pushMessage("Information", "No targets selected for modification.", level=Qgis.Info)
+            return
         fid_selected = []
         for feat in feats:
             fid_selected.append(feat.id())
 
-        attrs = self.stored_attrs_to_copy
-        caps = layer.dataProvider().capabilities()
-        features = layer.getFeatures()
+        if self.stored_names_attrs_to_copy is None:
+            iface.messageBar().pushMessage("Error", "First, copy the attributes from the source object.", level=Qgis.Critical)
+            return
+        fields_names = self.stored_names_attrs_to_copy 
+        fields_indices = []
         
+        for i in range(len(self.stored_names_attrs_to_copy)):
+            fields_indices.append(layer.fields().indexFromName(fields_names[i]))
+
+        self.attrs_to_paste = dict(zip(fields_indices, self.stored_values_attrs_to_copy))
+
+        caps = layer.dataProvider().capabilities()
         for i in range(len(fid_selected)):
             fid = int(fid_selected[i])
             if caps & QgsVectorDataProvider.ChangeAttributeValues:
-                layer.dataProvider().changeAttributeValues({ fid : attrs })
+                layer.dataProvider().changeAttributeValues({ fid : self.attrs_to_paste })
 
         if iface.mapCanvas().isCachingEnabled():
             layer.triggerRepaint()
@@ -144,6 +162,4 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
             
         if layer:
             layer.removeSelection()
-            
-        self.showMinimized()
         iface.messageBar().pushMessage("3:",f"Number of objects modified: {len(fid_selected)}.", level=Qgis.Info)
