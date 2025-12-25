@@ -2,7 +2,7 @@
 name=Attribute Copier
 qgisMinimumVersion=3.16
 description=This plugin allows you to copy attributes from a source object to one or more target objects within a vector layer.
-version=1.0.2
+version=1.0.3
 author=Natalia Budzińska
 email=nataliabudzinska348@gmail.com
 about=This plugin allows you to copy attributes from a source object to one or more target objects within a vector layer.
@@ -18,11 +18,4 @@ experimental=False
 deprecated=False
 hasProcessingProvider=false
 server=False
-
-[changelog]
-version=1.0.2
-- Fixed critical crash on startup with no active layer.
-- Plugin is now robust against layer changes during operation.
-- Corrected attribute copying logic to prevent silent data corruption.
-- Added validation and user-friendly error messages.
 
