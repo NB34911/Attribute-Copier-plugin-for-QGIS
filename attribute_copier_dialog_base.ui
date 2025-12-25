@@ -15,6 +15,13 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="QCheckBox" name="checkBox_diffrent_layers">
+     <property name="text">
+      <string>Allow copying between different layers</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QLabel" name="label1">
      <property name="text">
       <string>Select attributes to copy</string>

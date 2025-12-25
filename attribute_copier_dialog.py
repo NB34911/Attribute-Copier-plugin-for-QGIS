@@ -33,6 +33,8 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
 
         self.stored_names_attrs_to_copy = None
         self.stored_values_attrs_to_copy = None
+        self.stored_names_attrs_to_paste = None
+        self.stored_dict_names_and_values = None
         self.fill_listWidget_with_fields()
         self.layer_to_modify = None
 
@@ -116,6 +118,7 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
 
         self.stored_names_attrs_to_copy = list_names_attr_to_copy
         self.stored_values_attrs_to_copy = list_attr_values_to_copy
+        self.stored_dict_names_and_values = dict(zip(list_names_attr_to_copy,list_attr_values_to_copy))
         
         if layer:
             layer.removeSelection()
@@ -125,7 +128,13 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         widget.setEnabled(True)
         
     def paste_attributes_from_source(self):
-        layer = self.layer_to_modify
+        target_fields = None
+        if self.checkBox_diffrent_layers.isChecked():
+            layer = iface.activeLayer()
+            target_fields = layer.fields()
+        else:
+            layer = self.layer_to_modify
+    
         if not layer or layer.type() != QgsMapLayer.VectorLayer:
             iface.messageBar().pushMessage("Error", "Select a vector layer.", level=Qgis.Critical)
             return
@@ -141,13 +150,28 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         if self.stored_names_attrs_to_copy is None:
             iface.messageBar().pushMessage("Error", "First, copy the attributes from the source object.", level=Qgis.Critical)
             return
-        fields_names = self.stored_names_attrs_to_copy 
-        fields_indices = []
         
-        for i in range(len(self.stored_names_attrs_to_copy)):
+        fields_names = self.stored_names_attrs_to_copy
+        fields_values = self.stored_values_attrs_to_copy
+        dictionary = self.stored_dict_names_and_values
+
+        fields_names_approved = []
+        fields_values_approved = []
+        if self.checkBox_diffrent_layers.isChecked():
+            for field_name in fields_names:
+                if target_fields and (field_name in  target_fields):
+                    fields_names_approved.append(field_name)
+                    fields_values_approved.append(dictionary.get(field_name))
+            fields_names = fields_names_approved
+            fields_values = fields_values_approved
+        else:
+            pass
+
+        fields_indices = []
+        for i in range(len(fields_names)):
             fields_indices.append(layer.fields().indexFromName(fields_names[i]))
 
-        self.attrs_to_paste = dict(zip(fields_indices, self.stored_values_attrs_to_copy))
+        self.attrs_to_paste = dict(zip(fields_indices, fields_values))
 
         caps = layer.dataProvider().capabilities()
         for i in range(len(fid_selected)):
