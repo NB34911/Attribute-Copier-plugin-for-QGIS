@@ -33,10 +33,9 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
 
         self.stored_names_attrs_to_copy = None
         self.stored_values_attrs_to_copy = None
-        self.stored_names_attrs_to_paste = None
         self.stored_dict_names_and_values = None
         self.fill_listWidget_with_fields()
-        self.layer_to_modify = None
+        self.source_layer = None
 
         canvas = iface.mapCanvas()
         canvas.currentLayerChanged.connect(self.fill_listWidget_with_fields)
@@ -83,8 +82,8 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
             item.setCheckState(Qt.Unchecked)
 
     def confirm_layer_and_activate_select_tool(self):
-        self.layer_to_modify= iface.activeLayer()
-        layer = self.layer_to_modify
+        self.source_layer= iface.activeLayer()
+        layer = self.source_layer
         if not layer or layer.type() != QgsMapLayer.VectorLayer:
             iface.messageBar().pushMessage("Error", "Select a vector layer.", level=Qgis.Critical)
             return
@@ -93,7 +92,7 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
             iface.messageBar().pushMessage("1:", "Select the object to copy attributes.", level=Qgis.Info)
 
     def copy_source(self):
-        layer = self.layer_to_modify
+        layer = self.source_layer
         if not layer or layer.type() != QgsMapLayer.VectorLayer:
             iface.messageBar().pushMessage("Error", "Select a vector layer.", level=Qgis.Critical)
             return
@@ -128,13 +127,12 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         widget.setEnabled(True)
         
     def paste_attributes_from_source(self):
-        target_fields = None
         if self.checkBox_diffrent_layers.isChecked():
             layer = iface.activeLayer()
-            target_fields = layer.fields()
         else:
-            layer = self.layer_to_modify
-    
+            layer = self.source_layer
+        
+        # pobranie indeksów targetowych obiektów
         if not layer or layer.type() != QgsMapLayer.VectorLayer:
             iface.messageBar().pushMessage("Error", "Select a vector layer.", level=Qgis.Critical)
             return
@@ -143,36 +141,63 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         if not feats:
             iface.messageBar().pushMessage("Information", "No targets selected for modification.", level=Qgis.Info)
             return
+        
         fid_selected = []
         for feat in feats:
             fid_selected.append(feat.id())
 
+        # pobranie indeksów nazw pól do wklejenia atrybutów
         if self.stored_names_attrs_to_copy is None:
             iface.messageBar().pushMessage("Error", "First, copy the attributes from the source object.", level=Qgis.Critical)
             return
         
         fields_names = self.stored_names_attrs_to_copy
-        fields_values = self.stored_values_attrs_to_copy
-        dictionary = self.stored_dict_names_and_values
-
-        fields_names_approved = []
-        fields_values_approved = []
-        if self.checkBox_diffrent_layers.isChecked():
-            for field_name in fields_names:
-                if target_fields and (field_name in  target_fields):
-                    fields_names_approved.append(field_name)
-                    fields_values_approved.append(dictionary.get(field_name))
-            fields_names = fields_names_approved
-            fields_values = fields_values_approved
-        else:
-            pass
-
         fields_indices = []
+        fields_names_consistent = []
         for i in range(len(fields_names)):
-            fields_indices.append(layer.fields().indexFromName(fields_names[i]))
+            field_index = layer.fields().indexFromName(fields_names[i])
+            if field_index != -1:
+                fields_indices.append(field_index)
+                fields_names_consistent.append(fields_names[i])
 
-        self.attrs_to_paste = dict(zip(fields_indices, fields_values))
+        ## sprawdzenie czy nazwy pól w targecie są takie jak w źródle
+        #fields_indices = list(filter(lambda x: x != -1, fields_indices))   
+        print(fields_indices)
+        print(fields_names_consistent)
 
+        ## wybranie typów pól z warstwy źródłowej
+        layer_s = self.source_layer 
+        fields_types_in_source = []
+        for name in fields_names_consistent:
+            field = layer_s.fields().field(name)
+            fields_types_in_source.append(field.typeName())
+        print(fields_types_in_source)
+
+        ## wybranie typów pól z warstwy docelowej 
+        fields_types_in_target = []
+        for name in fields_names_consistent:
+            field = layer.fields().field(name)
+            fields_types_in_target.append(field.typeName())
+        print(fields_types_in_target)
+
+        ## porównanie typów pól z warstwy źródłowej i docelowej
+        diff_in_field_types = [i for i, (a, b) in enumerate(zip(fields_types_in_source, fields_types_in_target)) if a != b]
+        print(diff_in_field_types)
+
+        # "Zachowaj element x, jeśli jego indeks i NIE znajduje się w liście roznice"
+        new_fields_indices = [x for i, x in enumerate(fields_indices) if i not in diff_in_field_types]
+        fields_names_approved = [x for i, x in enumerate(fields_names_consistent) if i not in diff_in_field_types]
+        print(new_fields_indices)
+        print(fields_names_approved)
+
+        fields_values_approved = [self.stored_dict_names_and_values[k] for k in fields_names_approved]
+        print(fields_values_approved)
+
+        # słownik: indeksy nazw pól; wartości w tych polach
+        #self.attrs_to_paste = dict(zip(fields_indices, self.stored_values_attrs_to_copy))
+        self.attrs_to_paste = dict(zip(new_fields_indices, fields_values_approved))
+
+        # wklejenie wartości atrybutów do obiektów docelowych
         caps = layer.dataProvider().capabilities()
         for i in range(len(fid_selected)):
             fid = int(fid_selected[i])
