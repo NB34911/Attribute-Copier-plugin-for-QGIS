@@ -1,6 +1,6 @@
 # QGIS Attribute Copier Plugin
 
-This plugin allows you to copy attributes from a source object to one or more target objects within a vector layer.
+This plugin allows you to copy attributes from a source object to one or more target objects. It supports copying within a single vector layer or **between two different vector layers**.
 
 ## Usage
 
@@ -8,17 +8,35 @@ The animation below demonstrates the basic usage of the plugin:
 
 ![Plugin Usage Demonstration](https://raw.githubusercontent.com/NB34911/Attribute-Copier-plugin-for-QGIS/main/images/Usage_of_Plugin.gif)
 
+*(Note: The interface has been updated to support cross-layer copying, but the core workflow remains similar.)*
+
+### How to use with different layers:
+1. Open the plugin.
+2. Select the **Source Layer** in the Layers Panel and click "Confirm selection".
+3. Select one source object on the map and click "Copy attributes".
+4. (Optional) Check **"Allow copying between different layers"** and switch to your **Target Layer** in the Layers Panel.
+5. Select target objects on the map.
+6. Click "Paste attributes". 
+   * The plugin will automatically enable **Edit Mode** on the target layer.
+   * You can **Undo (Ctrl+Z)** the changes if needed before saving.
+
 ## Features
 
-*   Ability to choose which attributes to transfer.
-*   An easy way to transfer values from one object to multiple others within the same active vector layer.
-*   Operate directly on the map canvas, without the necessity of opening the attribute table.
+*   **Attribute Selection:** Ability to choose exactly which attributes (fields) to transfer.
+*   **Cross-Layer Support:** Copy attributes between different vector layers (requires matching field names).
+*   **Safe Editing:** Pasting triggers the QGIS Edit Buffer. Changes are not saved immediately to the file/database, allowing you to review them and use standard **Undo/Redo** functionality.
+*   **Batch Processing:** Transfer values from one source object to multiple target objects simultaneously.
+*   **User Friendly:** Logic prevents accidental copying of system identifiers (like `fid`).
 
 ## Installation
 
-### 1. From the official QGIS Plugin Repository (Coming Soon)
+### 1. From the official QGIS Plugin Repository
 
-Once the plugin is approved, it will be available to install directly from the QGIS Plugin Manager.
+The plugin is available in the official QGIS repository.
+1. Open QGIS.
+2. Go to **Plugins -> Manage and Install Plugins...**.
+3. Search for **Attribute Copier**.
+4. Click **Install Plugin**.
 
 ### 2. Manual Installation from ZIP
 
@@ -27,15 +45,13 @@ Once the plugin is approved, it will be available to install directly from the Q
 3.  In QGIS, go to **Plugins -> Manage and Install Plugins...**.
 4.  In the new window, switch to the **Install from ZIP** tab.
 5.  Browse to the downloaded ZIP file and click **Install Plugin**.
-6.  After installation, ensure the plugin is enabled in the **Installed** tab of the Plugin Manager.
 
 ## Future Development
 
 Planned features for future releases include:
 
-*   An "Undo" button to revert the last modification.
-*   Ability to copy attributes between different vector layers, with an option to automatically create new fields in the target layer if they don't exist.
-*   Extended recognition of primary keys in different layers (currently, only `fid` in GeoPackage is recognized) to prevent errors.
+*   Option to automatically create new fields in the target layer if they don't exist in the source layer.
+*   Improved support for different field types mapping.
 
 ## Acknowledgements
 
