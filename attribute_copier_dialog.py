@@ -131,8 +131,7 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
             layer = iface.activeLayer()
         else:
             layer = self.source_layer
-        
-        # pobranie indeksów targetowych obiektów
+
         if not layer or layer.type() != QgsMapLayer.VectorLayer:
             iface.messageBar().pushMessage("Error", "Select a vector layer.", level=Qgis.Critical)
             return
@@ -146,7 +145,6 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         for feat in feats:
             fid_selected.append(feat.id())
 
-        # pobranie indeksów nazw pól do wklejenia atrybutów
         if self.stored_names_attrs_to_copy is None:
             iface.messageBar().pushMessage("Error", "First, copy the attributes from the source object.", level=Qgis.Critical)
             return
@@ -160,55 +158,38 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
                 fields_indices.append(field_index)
                 fields_names_consistent.append(fields_names[i])
 
-        ## sprawdzenie czy nazwy pól w targecie są takie jak w źródle
-        #fields_indices = list(filter(lambda x: x != -1, fields_indices))   
-        print(fields_indices)
-        print(fields_names_consistent)
-
-        ## wybranie typów pól z warstwy źródłowej
         layer_s = self.source_layer 
         fields_types_in_source = []
         for name in fields_names_consistent:
             field = layer_s.fields().field(name)
             fields_types_in_source.append(field.typeName())
-        print(fields_types_in_source)
 
-        ## wybranie typów pól z warstwy docelowej 
         fields_types_in_target = []
         for name in fields_names_consistent:
             field = layer.fields().field(name)
             fields_types_in_target.append(field.typeName())
-        print(fields_types_in_target)
 
-        ## porównanie typów pól z warstwy źródłowej i docelowej
         diff_in_field_types = [i for i, (a, b) in enumerate(zip(fields_types_in_source, fields_types_in_target)) if a != b]
-        print(diff_in_field_types)
-
-        # "Zachowaj element x, jeśli jego indeks i NIE znajduje się w liście roznice"
         new_fields_indices = [x for i, x in enumerate(fields_indices) if i not in diff_in_field_types]
         fields_names_approved = [x for i, x in enumerate(fields_names_consistent) if i not in diff_in_field_types]
-        print(new_fields_indices)
-        print(fields_names_approved)
-
         fields_values_approved = [self.stored_dict_names_and_values[k] for k in fields_names_approved]
-        print(fields_values_approved)
-
-        # słownik: indeksy nazw pól; wartości w tych polach
-        #self.attrs_to_paste = dict(zip(fields_indices, self.stored_values_attrs_to_copy))
         self.attrs_to_paste = dict(zip(new_fields_indices, fields_values_approved))
 
-        # wklejenie wartości atrybutów do obiektów docelowych
-        caps = layer.dataProvider().capabilities()
-        for i in range(len(fid_selected)):
-            fid = int(fid_selected[i])
-            if caps & QgsVectorDataProvider.ChangeAttributeValues:
-                layer.dataProvider().changeAttributeValues({ fid : self.attrs_to_paste })
+        if not layer.isEditable():
+            layer.startEditing()
 
-        if iface.mapCanvas().isCachingEnabled():
-            layer.triggerRepaint()
-        else:
-            iface.mapCanvas().refresh()
-            
+        layer.beginEditCommand("Paste Attributes")
+        try:
+            for fid in fid_selected:
+                for field_index, value in self.attrs_to_paste.items():
+                    layer.changeAttributeValue(fid, int(field_index), value)
+            layer.endEditCommand()
+            iface.messageBar().pushMessage("Success", f"Modified {len(fid_selected)} objects.", level=Qgis.Info)
+
+        except Exception as e:
+            layer.destroyEditCommand()
+            iface.messageBar().pushMessage("Error", str(e), level=Qgis.Critical)
+
+        layer.triggerRepaint()
         if layer:
             layer.removeSelection()
-        iface.messageBar().pushMessage("3:",f"Number of objects modified: {len(fid_selected)}.", level=Qgis.Info)
