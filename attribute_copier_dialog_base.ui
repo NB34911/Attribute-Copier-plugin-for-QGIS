@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>360</width>
-    <height>354</height>
+    <height>359</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,16 +43,16 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="pb_confirm_choice">
-     <property name="text">
-      <string>Confirm selection</string>
+    <widget class="QListWidget" name="listWidget">
+     <property name="selectionRectVisible">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QListWidget" name="listWidget">
-     <property name="selectionRectVisible">
-      <bool>false</bool>
+    <widget class="QPushButton" name="pb_confirm_choice">
+     <property name="text">
+      <string>Confirm selected fields</string>
      </property>
     </widget>
    </item>

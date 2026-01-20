@@ -12,11 +12,12 @@ The animation below demonstrates the basic usage of the plugin:
 
 ### How to use with different layers:
 1. Open the plugin.
-2. Select the **Source Layer** in the Layers Panel and click "Confirm selection".
-3. Select one source object on the map and click "Copy attributes".
-4. (Optional) Check **"Allow copying between different layers"** and switch to your **Target Layer** in the Layers Panel.
-5. Select target objects on the map.
-6. Click "Paste attributes". 
+2. Select the **Source Layer** in the Layers Panel (the attribute list will update automatically).
+3. Check the attributes you want to copy in the list and click **"Confirm selected fields"**.
+4. Select one source object on the map and click **"Copy attributes"**.
+5. (Optional) Check **"Allow copying between different layers"** and switch to your **Target Layer** in the Layers Panel.
+6. Select target objects on the map.
+7. Click **"Paste attributes"**. 
    * The plugin will automatically enable **Edit Mode** on the target layer.
    * You can **Undo (Ctrl+Z)** the changes if needed before saving.
 
