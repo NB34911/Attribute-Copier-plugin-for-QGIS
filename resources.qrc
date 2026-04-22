@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/plugins/attribute_copier" >
-        <file>icon.svg</file>
-    </qresource>
-</RCC>
