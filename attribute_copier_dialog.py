@@ -18,10 +18,10 @@ from qgis.PyQt import QtWidgets
 from qgis.core import *
 import qgis.utils
 from qgis.utils import iface 
-from PyQt5.QtWidgets import QListWidgetItem
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QAction
-from PyQt5.QtWidgets import QAbstractItemView
+from qgis.PyQt.QtWidgets import QListWidgetItem
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAbstractItemView
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'attribute_copier_dialog_base.ui'))
@@ -44,10 +44,10 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         self.pb_uncheck_all.clicked.connect(self.uncheck_fields)
 
         self.pb_confirm_choice.clicked.connect(self.confirm_layer_and_activate_select_tool)
-        self.pb_confirm_choice.clicked.connect(lambda : self.enable_widget(self.pb_copy_attributes))
+        self.pb_confirm_choice.clicked.connect(lambda checked=False: self.enable_widget(self.pb_copy_attributes))
 
         self.pb_copy_attributes.clicked.connect(self.copy_source)
-        self.pb_copy_attributes.clicked.connect(lambda : self.enable_widget(self.pb_paste_attributes))
+        self.pb_copy_attributes.clicked.connect(lambda checked=False: self.enable_widget(self.pb_paste_attributes))
         
         self.pb_paste_attributes.clicked.connect(self.paste_attributes_from_source)
         
@@ -56,50 +56,50 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         self.listWidget.clear()
         layer = iface.activeLayer()
         if not layer:
-            iface.messageBar().pushMessage("Warning:", "There is no active vector layer selected.", level=Qgis.Info)
-        elif (layer.type() == QgsMapLayer.VectorLayer):
+            iface.messageBar().pushMessage("Warning:", "There is no active vector layer selected.", level=Qgis.MessageLevel.Info)
+        elif (layer.type() == QgsMapLayerType.VectorLayer):
             fields = layer.fields()
             for field in fields:
                 item = QListWidgetItem(field.name())
-                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-                item.setCheckState(Qt.Unchecked)
+                item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+                item.setCheckState(Qt.CheckState.Unchecked)
                 self.listWidget.addItem(item)
-            self.listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+            self.listWidget.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         else:
-            iface.messageBar().pushMessage("Warning:", "There is no active vector layer selected.", level=Qgis.Info)
+            iface.messageBar().pushMessage("Warning:", "There is no active vector layer selected.", level=Qgis.MessageLevel.Info)
             
     def select_fields(self):
         for x in range(self.listWidget.count()):
             item = self.listWidget.item(x)
             if item.text()== 'fid':
-                item.setCheckState(Qt.Unchecked)
+                item.setCheckState(Qt.CheckState.Unchecked)
             else:
-                item.setCheckState(Qt.Checked)
+                item.setCheckState(Qt.CheckState.Checked)
             
     def uncheck_fields(self):
         for x in range(self.listWidget.count()):
             item = self.listWidget.item(x)
-            item.setCheckState(Qt.Unchecked)
+            item.setCheckState(Qt.CheckState.Unchecked)
 
     def confirm_layer_and_activate_select_tool(self):
         self.source_layer= iface.activeLayer()
         layer = self.source_layer
-        if not layer or layer.type() != QgsMapLayer.VectorLayer:
-            iface.messageBar().pushMessage("Error", "Select a vector layer.", level=Qgis.Critical)
+        if not layer or layer.type() != QgsMapLayerType.VectorLayer:
+            iface.messageBar().pushMessage("Error", "Select a vector layer.", level=Qgis.MessageLevel.Critical)
             return
         else:
             iface.actionSelect().trigger()
-            iface.messageBar().pushMessage("1:", "Select the object to copy attributes.", level=Qgis.Info)
+            iface.messageBar().pushMessage("1:", "Select the object to copy attributes.", level=Qgis.MessageLevel.Info)
 
     def copy_source(self):
         layer = self.source_layer
-        if not layer or layer.type() != QgsMapLayer.VectorLayer:
-            iface.messageBar().pushMessage("Error", "Select a vector layer.", level=Qgis.Critical)
+        if not layer or layer.type() != QgsMapLayerType.VectorLayer:
+            iface.messageBar().pushMessage("Error", "Select a vector layer.", level=Qgis.MessageLevel.Critical)
             return
         
         feats = layer.selectedFeatures()
         if len(feats) != 1:
-            iface.messageBar().pushMessage("Error", "Select exactly 1 object from which you want to copy attributes.", level=Qgis.Critical)
+            iface.messageBar().pushMessage("Error", "Select exactly 1 object from which you want to copy attributes.", level=Qgis.MessageLevel.Critical)
             return
         
         list_attr_values_to_copy = []
@@ -107,7 +107,7 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         
         for x in range(self.listWidget.count()):
             item = self.listWidget.item(x)
-            if item.checkState()==2:
+            if item.checkState() == Qt.CheckState.Checked:
                 list_names_attr_to_copy.append(item.text())
         
         feat = feats[0]
@@ -121,24 +121,24 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         
         if layer:
             layer.removeSelection()
-        iface.messageBar().pushMessage("2:", "Select target objects to modify attributes.", level=Qgis.Info)
+        iface.messageBar().pushMessage("2:", "Select target objects to modify attributes.", level=Qgis.MessageLevel.Info)
 
     def enable_widget(self, widget):
         widget.setEnabled(True)
-        
+
     def paste_attributes_from_source(self):
         if self.checkBox_diffrent_layers.isChecked():
             layer = iface.activeLayer()
         else:
             layer = self.source_layer
 
-        if not layer or layer.type() != QgsMapLayer.VectorLayer:
-            iface.messageBar().pushMessage("Error", "Select a vector layer.", level=Qgis.Critical)
+        if not layer or layer.type() != QgsMapLayerType.VectorLayer:
+            iface.messageBar().pushMessage("Error", "Select a vector layer.", level=Qgis.MessageLevel.Critical)
             return
         
         feats = layer.selectedFeatures()
         if not feats:
-            iface.messageBar().pushMessage("Information", "No targets selected for modification.", level=Qgis.Info)
+            iface.messageBar().pushMessage("Information", "No targets selected for modification.", level=Qgis.MessageLevel.Info)
             return
         
         fid_selected = []
@@ -146,7 +146,7 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
             fid_selected.append(feat.id())
 
         if self.stored_names_attrs_to_copy is None:
-            iface.messageBar().pushMessage("Error", "First, copy the attributes from the source object.", level=Qgis.Critical)
+            iface.messageBar().pushMessage("Error", "First, copy the attributes from the source object.", level=Qgis.MessageLevel.Critical)
             return
         
         fields_names = self.stored_names_attrs_to_copy
@@ -170,6 +170,7 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
             fields_types_in_target.append(field.typeName())
 
         diff_in_field_types = [i for i, (a, b) in enumerate(zip(fields_types_in_source, fields_types_in_target)) if a != b]
+        
         new_fields_indices = [x for i, x in enumerate(fields_indices) if i not in diff_in_field_types]
         fields_names_approved = [x for i, x in enumerate(fields_names_consistent) if i not in diff_in_field_types]
         fields_values_approved = [self.stored_dict_names_and_values[k] for k in fields_names_approved]
@@ -184,11 +185,11 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
                 for field_index, value in self.attrs_to_paste.items():
                     layer.changeAttributeValue(fid, int(field_index), value)
             layer.endEditCommand()
-            iface.messageBar().pushMessage("Success", f"Modified {len(fid_selected)} objects.", level=Qgis.Info)
+            iface.messageBar().pushMessage("Success", f"Modified {len(fid_selected)} objects.", level=Qgis.MessageLevel.Info)
 
         except Exception as e:
             layer.destroyEditCommand()
-            iface.messageBar().pushMessage("Error", str(e), level=Qgis.Critical)
+            iface.messageBar().pushMessage("Error", str(e), level=Qgis.MessageLevel.Critical)
 
         layer.triggerRepaint()
         if layer:

@@ -8,8 +8,6 @@ The animation below demonstrates the basic usage of the plugin:
 
 ![Plugin Usage Demonstration](https://raw.githubusercontent.com/NB34911/Attribute-Copier-plugin-for-QGIS/main/images/Usage_of_Plugin.gif)
 
-*(Note: The interface has been updated to support cross-layer copying, but the core workflow remains similar.)*
-
 ### How to use with different layers:
 1. Open the plugin.
 2. Select the **Source Layer** in the Layers Panel (the attribute list will update automatically).
@@ -24,7 +22,7 @@ The animation below demonstrates the basic usage of the plugin:
 ## Features
 
 *   **Attribute Selection:** Ability to choose exactly which attributes (fields) to transfer.
-*   **Cross-Layer Support:** Copy attributes between different vector layers (requires matching field names).
+*   **Cross-Layer Support:** Copy attributes between different vector layers (requires matching field names and types).
 *   **Safe Editing:** Pasting triggers the QGIS Edit Buffer. Changes are not saved immediately to the file/database, allowing you to review them and use standard **Undo/Redo** functionality.
 *   **Batch Processing:** Transfer values from one source object to multiple target objects simultaneously.
 *   **User Friendly:** Logic prevents accidental copying of system identifiers (like `fid`).

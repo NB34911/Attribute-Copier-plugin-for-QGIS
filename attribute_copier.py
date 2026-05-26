@@ -11,14 +11,15 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-
+import os
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QPalette
 
-from .resources import *
+# from .resources import *
 from .attribute_copier_dialog import AttributeCopierDialog
 import os.path
 
@@ -35,7 +36,8 @@ class AttributeCopier:
         """
         self.iface = iface
         self.plugin_dir = os.path.dirname(__file__)
-        locale = QSettings().value('locale/userLocale')[0:2]
+        # locale = QSettings().value('locale/userLocale')[0:2]
+        locale = str(QSettings().value('locale/userLocale', 'en'))[0:2]
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
@@ -61,7 +63,6 @@ class AttributeCopier:
         :returns: Translated version of message.
         :rtype: QString
         """
-        # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('AttributeCopier', message)
 
 
@@ -138,11 +139,18 @@ class AttributeCopier:
         self.actions.append(action)
 
         return action
-
+    
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
+        
+        plugin_dir = os.path.dirname(__file__)
+        bg_color = self.iface.mainWindow().palette().color(QPalette.ColorRole.Window)
+        
+        if bg_color.lightness() < 128:
+            icon_path = os.path.join(plugin_dir, 'icon_white.svg')
+        else:
+            icon_path = os.path.join(plugin_dir, 'icon.svg')
 
-        icon_path = ':/plugins/attribute_copier/icon.svg'
         self.add_action(
             icon_path,
             text=self.tr(u'Copy attributes and paste.'),
@@ -161,8 +169,8 @@ class AttributeCopier:
                 action)
             self.iface.removeToolBarIcon(action)
 
-
-    def run(self):
+    # def run(self):
+    def run(self, checked=False):
 
         if not hasattr(self, 'dockwidget'):
             
@@ -171,5 +179,5 @@ class AttributeCopier:
 
             self.widget_ui = AttributeCopierDialog()
             self.dockwidget.setWidget(self.widget_ui)
-            self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dockwidget)
+            self.iface.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dockwidget)
         self.dockwidget.show()

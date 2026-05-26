@@ -1,13 +1,14 @@
 [general]
 name=Attribute Copier
 qgisMinimumVersion=3.16
+qgisMaximumVersion=4.99
 description=Copy attributes from a source object to target objects (supports cross-layer copying).
-version=1.0.4
+version=1.0.5
 author=Natalia Budzińska
 email=nataliabudzinska348@gmail.com
 about=This plugin allows you to copy attributes from a source object and paste them into selected target objects.
 
-    - Supports copying attributes between TWO DIFFERENT vector layers (if field names match).
+    - Supports copying attributes between TWO DIFFERENT vector layers (if field names and field types match).
     - Safer editing: Pasting activates Edit Mode. You can review changes, Undo (Ctrl+Z), and explicitly Save or Discard edits.
     
     How to use:
@@ -23,7 +24,7 @@ repository=https://github.com/NB34911/Attribute-Copier-plugin-for-QGIS
 tags=vector,attributes,copy,edit,fields
 homepage=https://github.com/NB34911/Attribute-Copier-plugin-for-QGIS
 category=Vector
-icon=icon.svg
+icon=icon_uni4.svg
 experimental=False
 deprecated=False
 hasProcessingProvider=false
