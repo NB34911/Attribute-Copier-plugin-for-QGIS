@@ -161,62 +161,20 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
         layer_s = self.source_layer 
         fields_types_in_source = []
         for name in fields_names_consistent:
-            fields_types_in_source.append(layer_s.fields().field(name).typeName().lower())
+            field = layer_s.fields().field(name)
+            fields_types_in_source.append(field.typeName())
 
         fields_types_in_target = []
         for name in fields_names_consistent:
-            fields_types_in_target.append(layer.fields().field(name).typeName().lower())
+            field = layer.fields().field(name)
+            fields_types_in_target.append(field.typeName())
 
-        def get_type_group(t_name):
-            if 'int' in t_name: return 'int'
-            if t_name in ['real', 'double', 'float', 'decimal', 'numeric']: return 'float'
-            if 'string' in t_name or 'text' in t_name or 'char' in t_name: return 'string'
-            if 'date' in t_name or 'time' in t_name: return 'date'
-            if 'bool' in t_name: return 'bool'
-            return t_name
-
-
-        diff_in_field_types = []
-        for i, (a, b) in enumerate(zip(fields_types_in_source, fields_types_in_target)):
-            grp_a = get_type_group(a)
-            grp_b = get_type_group(b)
-            
-            if grp_a != grp_b:
-                if grp_a == 'int' and grp_b == 'float':
-                    pass 
-                else:
-                    diff_in_field_types.append(i)
+        diff_in_field_types = [i for i, (a, b) in enumerate(zip(fields_types_in_source, fields_types_in_target)) if a != b]
         
         new_fields_indices = [x for i, x in enumerate(fields_indices) if i not in diff_in_field_types]
         fields_names_approved = [x for i, x in enumerate(fields_names_consistent) if i not in diff_in_field_types]
         fields_values_approved = [self.stored_dict_names_and_values[k] for k in fields_names_approved]
         self.attrs_to_paste = dict(zip(new_fields_indices, fields_values_approved))
-
-
-        warning_messages = []
-        for name in fields_names_approved:
-            source_field = layer_s.fields().field(name)
-            target_field = layer.fields().field(name)
-            
-            s_len = source_field.length()
-            t_len = target_field.length()
-            s_prec = source_field.precision()
-            t_prec = target_field.precision()
-
-            warnings_for_field = []
-            
-            if t_len > 0 and s_len > t_len:
-                warnings_for_field.append(f"Length {s_len}->{t_len}")
-                
-            if t_prec > 0 and s_prec > t_prec:
-                warnings_for_field.append(f"Precision {s_prec}->{t_prec}")
-                
-            if warnings_for_field:
-                warning_messages.append(f"{name} ({', '.join(warnings_for_field)})")
-
-        if warning_messages:
-            msg = "Potential data truncation for fields: " + " | ".join(warning_messages)
-            iface.messageBar().pushMessage("Warning", msg, level=Qgis.MessageLevel.Warning)
 
         if not layer.isEditable():
             layer.startEditing()
@@ -227,7 +185,7 @@ class AttributeCopierDialog(QtWidgets.QWidget, FORM_CLASS):
                 for field_index, value in self.attrs_to_paste.items():
                     layer.changeAttributeValue(fid, int(field_index), value)
             layer.endEditCommand()
-            iface.messageBar().pushMessage("Success", f"Modified {len(fid_selected)} objects. (Press Ctrl+Z to undo)", level=Qgis.MessageLevel.Info)
+            iface.messageBar().pushMessage("Success", f"Modified {len(fid_selected)} objects.", level=Qgis.MessageLevel.Info)
 
         except Exception as e:
             layer.destroyEditCommand()
